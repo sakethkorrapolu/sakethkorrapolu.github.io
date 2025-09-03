@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 180 Project 0 - Images of the Russian Empire</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 0;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 300;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            font-weight: 300;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .description {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .image-container {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.02);
+        }
+
+        .image-label {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .image-description {
+            font-size: 0.95em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .dolly-zoom-container {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 30px 0;
+        }
+
+        .dolly-zoom-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .explanation {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-size: 1.05em;
+            line-height: 1.7;
+        }
+
+        .explanation h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .technical-note {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .image-comparison {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.8em;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            border-top: 2px solid #ecf0f1;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CS 180 Project 0</h1>
+            <p class="subtitle">Exploring Perspective, Focal Length, and Camera Effects</p>
+        </header>
+
+        <!-- Part 1: Selfie Comparison -->
+        <section class="section">
+            <h2 class="section-title">Part 1: Selfie - The Wrong Way vs. The Right Way</h2>
+            <p class="description">
+                Understanding how distance and focal length affect portrait photography. 
+                Compare a close-up selfie with a zoomed-in photo taken from further away.
+            </p>
+            
+            <div class="image-comparison">
+                <div class="image-container">
+                    <img src="media/me close.jpeg" alt="Close-up selfie showing distortion">
+                    <div class="image-label">Close-up Selfie</div>
+                    <div class="image-description">Taken from close distance - notice the distortion</div>
+                </div>
+                <div class="image-container">
+                    <img src="media/me far.jpeg" alt="Distant photo with zoom showing natural proportions">
+                    <div class="image-label">Distant + Zoom</div>
+                    <div class="image-description">Taken from distance with zoom - more natural proportions</div>
+                </div>
+            </div>
+
+            <div class="explanation">
+                <h3>Why does this happen?</h3>
+                <p>
+                    The difference in these images demonstrates the relationship between camera distance and perspective distortion. 
+                    When photographing from close up, features closer to the camera (like the nose) appear disproportionately large 
+                    compared to features further away (like the ears). This creates the unflattering "selfie distortion" effect.
+                </p>
+                <p>
+                    By stepping back and using optical zoom, we maintain the same framing while reducing perspective distortion. 
+                    The longer focal length compresses the depth, making facial features appear more proportional and natural - 
+                    this is why professional portrait photographers typically use longer lenses and shoot from greater distances.
+                </p>
+            </div>
+        </section>
+
+        <!-- Part 2: Architectural Perspective -->
+        <section class="section">
+            <h2 class="section-title">Part 2: Architectural Perspective Compression</h2>
+            <p class="description">
+                Exploring how focal length affects the perception of depth and distance in architectural photography.
+            </p>
+            
+            <div class="image-comparison">
+                <div class="image-container">
+                    <img src="media/vlsb far.jpeg" alt="Wide angle view showing depth">
+                    <div class="image-label">Wide Angle (Close Position)</div>
+                    <div class="image-description">Shot from closer with wide angle - emphasizes depth</div>
+                </div>
+                <div class="image-container">
+                    <img src="media/vlsb close.jpeg" alt="Telephoto view showing compression">
+                    <div class="image-label">Telephoto (Distant Position)</div>
+                    <div class="image-description">Shot from distance with zoom - compressed perspective</div>
+                </div>
+            </div>
+
+            <div class="explanation">
+                <h3>The Compression Effect</h3>
+                <p>
+                    This demonstrates perspective compression in architectural photography. The wide-angle shot (left) taken from 
+                    closer to the subject emphasizes the depth and distance between foreground and background elements, making 
+                    the scene appear more three-dimensional and spacious.
+                </p>
+                <p>
+                    The telephoto shot (right) taken from further away with zoom creates a "flattened" or compressed appearance. 
+                    Background elements appear closer to foreground elements, and the sense of depth is reduced. This compression 
+                    effect is commonly used in cinematography to create different emotional impacts and visual storytelling effects.
+                </p>
+            </div>
+        </section>
+
+        <!-- Part 3: Dolly Zoom Effect -->
+        <section class="section">
+            <h2 class="section-title">Part 3: The Dolly Zoom Effect</h2>
+            <p class="description">
+                The famous "Vertigo Shot" - simultaneously moving the camera back while zooming in to create 
+                a disorienting effect where the subject stays the same size but the background changes dramatically.
+            </p>
+            
+            <div class="dolly-zoom-container">
+                <img src="media/dolly zoom.gif" alt="Dolly zoom effect animation">
+                <div class="image-label">Dolly Zoom Animation</div>
+                <div class="image-description">Camera moves back while zooming in - notice how the background changes while the subject remains constant</div>
+            </div>
+
+            <div class="explanation">
+                <h3>The Hitchcock Effect</h3>
+                <p>
+                    The dolly zoom, also known as the "Vertigo shot" after its famous use in Alfred Hitchcock's film, 
+                    creates a surreal visual effect. By simultaneously moving the camera away from the subject while 
+                    zooming in (or vice versa), the main subject maintains its size in the frame while the background 
+                    dramatically changes perspective.
+                </p>
+                <p>
+                    This technique exploits the relationship between focal length and perspective. As we zoom in, 
+                    we're increasing the focal length, which compresses the background. As we move away, we're changing 
+                    our physical relationship to the scene. The combination creates an unsettling effect where the 
+                    spatial relationships in the image seem to shift in impossible ways.
+                </p>
+            </div>
+
+            <div class="technical-note">
+                <strong>Note:</strong> This effect works because focal length affects perspective compression, 
+                while physical camera position affects the relative size of objects. By carefully balancing these two 
+                factors, we can keep one element constant while dramatically altering others.
+            </div>
+        </section>
+
+        <footer>
+            <p>CS 180 - Computer Vision | Project 0: Images of the Russian Empire</p>
+            <p>Exploring the fundamental relationships between perspective, focal length, and visual perception</p>
+        </footer>
+    </div>
+</body>
+</html>
