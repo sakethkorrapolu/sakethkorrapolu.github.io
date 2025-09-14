@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 180 Project 1 - Images of the Russian Empire: Colorizing the Prokudin-Gorskii Collection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 40px 0;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            font-weight: 300;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            font-weight: 300;
+        }
+
+        .section {
+            margin-bottom: 60px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .description {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+            text-align: justify;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .approach-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border-left: 4px solid #3498db;
+        }
+
+        .approach-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .approach-section p {
+            margin-bottom: 10px;
+        }
+
+        .approach-section ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .approach-section li {
+            margin-bottom: 5px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .image-container {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .image-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.02);
+        }
+
+        .image-label {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .image-description {
+            font-size: 0.95em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .displacement-info {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .displacement-info .green {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .displacement-info .red {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .results-table th {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+        }
+
+        .results-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .results-table .image-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .results-table .displacement {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .results-table .green {
+            color: #27ae60;
+        }
+
+        .results-table .red {
+            color: #e74c3c;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-size: 1.05em;
+            line-height: 1.7;
+        }
+
+        .highlight h3 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .image-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .section-title {
+                font-size: 1.8em;
+            }
+
+            .results-table {
+                font-size: 0.85em;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #7f8c8d;
+            border-top: 2px solid #ecf0f1;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CS 180 Project 1</h1>
+            <p class="subtitle">Images of the Russian Empire: Colorizing the Prokudin-Gorskii Collection</p>
+        </header>
+
+        <!-- Project Overview -->
+        <section class="section">
+            <h2 class="section-title">Project Overview</h2>
+            <p class="description">
+                The goal of this assignment is to take the digitized Prokudin-Gorskii glass plate images and, using image processing techniques, 
+                automatically produce a color image with as few visual artifacts as possible. Sergey Prokudin-Gorskii was a Russian photographer 
+                who, in the early 1900s, envisioned a way to record color information using black and white film. His idea was to record three 
+                exposures of every scene onto a glass plate using red, green, and blue filters. The Library of Congress has digitized these 
+                glass plates and made them available online.
+            </p>
+            <p class="description">
+                To produce a color image, we need to extract the three color channel images, place them on top of each other, and align them 
+                so that they form a single RGB color image. The main challenge is that the three images are not perfectly aligned due to 
+                slight movements of the camera or the subject between exposures.
+            </p>
+        </section>
+
+        <!-- Approach -->
+        <section class="section">
+            <h2 class="section-title">Approach & Implementation</h2>
+            
+            <div class="approach-section">
+                <h3>1. Image Preprocessing</h3>
+                <p>Each digitized glass plate contains three images stacked vertically in BGR order (Blue, Green, Red from top to bottom). 
+                The first step is to split the image into three equal parts and crop the borders to remove digitization artifacts.</p>
+            </div>
+
+            <div class="approach-section">
+                <h3>2. Alignment Strategy</h3>
+                <p>For alignment, I implemented two approaches depending on image size:</p>
+                <ul>
+                    <li><strong>Single-scale alignment</strong>: For smaller images (< 400px), exhaustive search over a window of ±15 pixels</li>
+                    <li><strong>Pyramid alignment</strong>: For larger images, using an image pyramid to efficiently handle large displacements</li>
+                </ul>
+            </div>
+
+            <div class="approach-section">
+                <h3>3. Similarity Metric</h3>
+                <p>I used Normalized Cross-Correlation (NCC) as the similarity metric. NCC is more robust than simple L2 distance, 
+                especially when images have different brightness values (as is the case with different color channels).</p>
+            </div>
+
+            <div class="approach-section">
+                <h3>4. Pyramid Optimization</h3>
+                <p>For large images, I implemented a coarse-to-fine pyramid approach:</p>
+                <ul>
+                    <li>Rescale images by half until the smallest dimension is ~60 pixels</li>
+                    <li>Start alignment from the coarsest level</li>
+                    <li>For each finer level, multiply the displacement by 2 and refine with a smaller search window</li>
+                    <li>This reduces computation from O(n²) to O(log n) for large displacements</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Results Summary Table -->
+        <section class="section">
+            <h2 class="section-title">Results Summary</h2>
+            <p class="description">
+                The table below shows the calculated displacement vectors for aligning the Green and Red channels to the Blue channel. 
+                All displacements are given as (x, y) pixel coordinates.
+            </p>
+            
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Green Displacement</th>
+                        <th>Red Displacement</th>
+                        <th>Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="image-name">cathedral.jpg</td>
+                        <td class="displacement green">(2, 5)</td>
+                        <td class="displacement red">(3, 12)</td>
+                        <td>Single-scale</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">monastery.jpg</td>
+                        <td class="displacement green">(2, -3)</td>
+                        <td class="displacement red">(2, 3)</td>
+                        <td>Single-scale</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">tobolsk.jpg</td>
+                        <td class="displacement green">(3, 3)</td>
+                        <td class="displacement red">(3, 7)</td>
+                        <td>Single-scale</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">church.tif</td>
+                        <td class="displacement green">(4, 25)</td>
+                        <td class="displacement red">(-4, 58)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">emir.tif</td>
+                        <td class="displacement green">(24, 49)</td>
+                        <td class="displacement red">(48, 44)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">harvesters.tif</td>
+                        <td class="displacement green">(17, 59)</td>
+                        <td class="displacement red">(14, 124)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">icon.tif</td>
+                        <td class="displacement green">(17, 40)</td>
+                        <td class="displacement red">(23, 89)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">melons.tif</td>
+                        <td class="displacement green">(10, 81)</td>
+                        <td class="displacement red">(14, 178)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">self_portrait.tif</td>
+                        <td class="displacement green">(29, 78)</td>
+                        <td class="displacement red">(37, 176)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">three_generations.tif</td>
+                        <td class="displacement green">(14, 52)</td>
+                        <td class="displacement red">(12, 111)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">italil.tif</td>
+                        <td class="displacement green">(21, 38)</td>
+                        <td class="displacement red">(35, 77)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">lastochikino.tif</td>
+                        <td class="displacement green">(-2, -3)</td>
+                        <td class="displacement red">(-9, 75)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">lugano.tif</td>
+                        <td class="displacement green">(-16, 41)</td>
+                        <td class="displacement red">(-29, 93)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                    <tr>
+                        <td class="image-name">siren.tif</td>
+                        <td class="displacement green">(-6, 49)</td>
+                        <td class="displacement red">(-24, 96)</td>
+                        <td>Pyramid</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Image Results -->
+        <section class="section">
+            <h2 class="section-title">Colorized Results</h2>
+            <p class="description">
+                Below are the results of the automatic colorization algorithm applied to the Prokudin-Gorskii glass plate images. 
+                Each image shows the successful alignment and combination of the three color channels into a single RGB image.
+            </p>
+
+            <div class="image-grid">
+                <div class="image-container">
+                    <img src="media/cathedral.jpg" alt="Cathedral colorized">
+                    <div class="image-label">Cathedral</div>
+                    <div class="image-description">Single-scale alignment</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (2, 5)</span><br>
+                        <span class="red">Red: (3, 12)</span><br>
+                        Processing time: 0.68s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/monastery.jpg" alt="Monastery colorized">
+                    <div class="image-label">Monastery</div>
+                    <div class="image-description">Single-scale alignment</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (2, -3)</span><br>
+                        <span class="red">Red: (2, 3)</span><br>
+                        Processing time: 1.09s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/tobolsk.jpg" alt="Tobolsk colorized">
+                    <div class="image-label">Tobolsk</div>
+                    <div class="image-description">Single-scale alignment</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (3, 3)</span><br>
+                        <span class="red">Red: (3, 7)</span><br>
+                        Processing time: 1.05s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/church.jpg" alt="Church colorized">
+                    <div class="image-label">Church</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (4, 25)</span><br>
+                        <span class="red">Red: (-4, 58)</span><br>
+                        Processing time: 37.30s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/emir_gradient.jpg" alt="Emir colorized">
+                    <div class="image-label">Emir of Bukhara</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (24, 49)</span><br>
+                        <span class="red">Red: (48, 44)</span><br>
+                        Processing time: 41.71s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/harvesters.jpg" alt="Harvesters colorized">
+                    <div class="image-label">Harvesters</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (17, 59)</span><br>
+                        <span class="red">Red: (14, 124)</span><br>
+                        Processing time: 40.84s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/icon.jpg" alt="Icon colorized">
+                    <div class="image-label">Icon</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (17, 40)</span><br>
+                        <span class="red">Red: (23, 89)</span><br>
+                        Processing time: 44.87s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/melons.jpg" alt="Melons colorized">
+                    <div class="image-label">Melons</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (10, 81)</span><br>
+                        <span class="red">Red: (14, 178)</span><br>
+                        Processing time: 44.71s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/self_portrait.jpg" alt="Self Portrait colorized">
+                    <div class="image-label">Self Portrait</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (29, 78)</span><br>
+                        <span class="red">Red: (37, 176)</span><br>
+                        Processing time: 44.62s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/three_generations.jpg" alt="Three Generations colorized">
+                    <div class="image-label">Three Generations</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (14, 52)</span><br>
+                        <span class="red">Red: (12, 111)</span><br>
+                        Processing time: 42.88s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/italil.jpg" alt="Italil colorized">
+                    <div class="image-label">Italil</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (21, 38)</span><br>
+                        <span class="red">Red: (35, 77)</span><br>
+                        Processing time: 40.81s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/lastochikino.jpg" alt="Lastochikino colorized">
+                    <div class="image-label">Lastochikino</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (-2, -3)</span><br>
+                        <span class="red">Red: (-9, 75)</span><br>
+                        Processing time: 41.19s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/lugano.jpg" alt="Lugano colorized">
+                    <div class="image-label">Lugano</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (-16, 41)</span><br>
+                        <span class="red">Red: (-29, 93)</span><br>
+                        Processing time: 45.16s
+                    </div>
+                </div>
+
+                <div class="image-container">
+                    <img src="media/siren.jpg" alt="Siren colorized">
+                    <div class="image-label">Siren</div>
+                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="displacement-info">
+                        <span class="green">Green: (-6, 49)</span><br>
+                        <span class="red">Red: (-24, 96)</span><br>
+                        Processing time: 45.61s
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Details -->
+        <section class="section">
+            <h2 class="section-title">Technical Implementation Details</h2>
+            
+            <div class="highlight">
+                <h3>The Emir Challenge: Brightness Differences Between Channels</h3>
+                <p>
+                    <strong>Problem:</strong> The Emir of Bukhara image presented a unique challenge due to significant brightness 
+                    differences between the color channels. The different exposures resulted in channels with vastly different 
+                    intensity distributions, making raw pixel-based alignment ineffective.
+                </p>
+                <p>
+                    <strong>Solution:</strong> I implemented a gradient-based alignment approach that uses edge information 
+                    rather than raw pixel intensities. This method computes gradient magnitude using Sobel filters and 
+                    performs alignment on the structural features, which remain consistent across channels despite brightness differences.
+                </p>
+            </div>
+
+            <!-- Emir Comparison -->
+            <div class="approach-section">
+                <h3>Emir Alignment Comparison: Raw Pixels vs. Gradient-Based</h3>
+                <p>Below is a side-by-side comparison showing the improvement achieved with gradient-based alignment for the challenging Emir image:</p>
+                
+                <div class="image-comparison" style="margin: 30px 0;">
+                    <div class="image-container">
+                        <img src="media/emir.jpg" alt="Emir with raw pixel alignment">
+                        <div class="image-label">Raw Pixel Alignment</div>
+                        <div class="image-description">Standard NCC on pixel values</div>
+                        <div class="displacement-info">
+                            <span class="green">Green: (24, 49)</span><br>
+                            <span class="red">Red: (48, 44)</span><br>
+                            Processing time: 41.71s
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <img src="media/emir_gradient.jpg" alt="Emir with gradient-based alignment">
+                        <div class="image-label">Gradient-Based Alignment</div>
+                        <div class="image-description">NCC on gradient magnitude</div>
+                        <div class="displacement-info">
+                            <span class="green">Green: (24, 49)</span><br>
+                            <span class="red">Red: (40, 107)</span><br>
+                            Processing time: 59.59s
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <p>
+                    <strong>Results Analysis:</strong> The gradient-based alignment produced different displacement values, 
+                    particularly for the red channel (40, 107) vs (48, 44). While the green channel displacement remained 
+                    the same (24, 49), the red channel showed a significant difference in the y-displacement (107 vs 44), 
+                    suggesting the gradient method found a better structural alignment by focusing on edges rather than 
+                    raw pixel intensities.
+                </p>
+                <p>
+                    <strong>Key Insight:</strong> The gradient-based approach focuses on edge information and structural features 
+                    that remain consistent across color channels, even when the overall brightness varies significantly. 
+                    This makes it particularly effective for historical photographs where different color filters may have 
+                    resulted in very different exposure levels. The increased processing time (59.59s vs 41.71s) reflects 
+                    the additional computational cost of gradient computation at each pyramid level.
+                </p>
+            </div>
+
+            <div class="highlight">
+                <h3>Additional Challenges and Solutions</h3>
+                <p>
+                    <strong>General Challenge:</strong> Beyond the Emir's brightness issues, all images required careful handling 
+                    of digitization artifacts and edge effects during alignment.
+                </p>
+                <p>
+                    <strong>Solution:</strong> Using Normalized Cross-Correlation instead of L2 distance proved much more robust 
+                    for images with varying brightness levels across channels, combined with aggressive border cropping to 
+                    eliminate digitization artifacts.
+                </p>
+            </div>
+
+            <div class="approach-section">
+                <h3>Performance Optimization</h3>
+                <p>The pyramid approach significantly improved processing times:</p>
+                <ul>
+                    <li>Small images (JPG): ~0.6s using single-scale alignment</li>
+                    <li>Large images (TIF): ~40s using pyramid alignment vs. several minutes with exhaustive search</li>
+                    <li>Pyramid levels automatically determined based on image size (typically 5 levels for large TIFs)</li>
+                </ul>
+            </div>
+
+            <div class="approach-section">
+                <h3>Border Cropping Strategy</h3>
+                <p>Implemented a two-stage cropping approach:</p>
+                <ul>
+                    <li>5% crop on original images to remove digitization artifacts</li>
+                    <li>15% crop during alignment to avoid edge effects from rolling operations</li>
+                    <li>Final displacement applied to original uncropped channels</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>CS 180 - Computer Vision | Project 1: Images of the Russian Empire</p>
+            <p>Automatic colorization of Prokudin-Gorskii glass plate photographs using image pyramid alignment</p>
+        </footer>
+    </div>
+</body>
+</html>
