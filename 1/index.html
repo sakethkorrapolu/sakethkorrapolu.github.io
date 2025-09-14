@@ -320,35 +320,64 @@
             <h2 class="section-title">Approach & Implementation</h2>
             
             <div class="approach-section">
-                <h3>1. Image Preprocessing</h3>
-                <p>Each digitized glass plate contains three images stacked vertically in BGR order (Blue, Green, Red from top to bottom). 
-                The first step is to split the image into three equal parts and crop the borders to remove digitization artifacts.</p>
+                <h3>1. Image Preprocessing and Channel Extraction</h3>
+                <p>Each digitized Prokudin-Gorskii glass plate contains three images stacked vertically in BGR order (Blue, Green, Red from top to bottom). 
+                My first step involves splitting each image into three equal parts by dividing the height by 3. I then convert the images to grayscale 
+                if they aren't already, since the original glass plates were monochrome exposures taken through different color filters. 
+                To eliminate digitization artifacts and border effects that could interfere with alignment, I crop 5% from each side of every channel 
+                before processing. This preprocessing ensures clean channel separation and removes potential noise from the scanning process.</p>
             </div>
 
             <div class="approach-section">
-                <h3>2. Alignment Strategy</h3>
-                <p>For alignment, I implemented two approaches depending on image size:</p>
+                <h3>2. Single-Scale Alignment for Small Images</h3>
+                <p>For low-resolution images (smaller than 400 pixels in either dimension), a single-scale approach is sufficient and computationally efficient. 
+                I perform an exhaustive windowed search over integer pixel shifts in a ±15 pixel range for both x and y directions. For each potential 
+                displacement, I shift one channel relative to the reference blue channel and compute the alignment score over the interior regions of the images. 
+                To prevent border artifacts from dominating the similarity metric, I crop an additional 15% from each side during the scoring process, 
+                focusing the alignment on the core image content. This single-scale method works well for the .jpg files in the dataset 
+                (cathedral.jpg, monastery.jpg, tobolsk.jpg) where displacements are typically small.</p>
+            </div>
+
+            <div class="approach-section">
+                <h3>3. Pyramid Alignment for Large Images</h3>
+                <p>For high-resolution .tif images where displacements can be 50+ pixels, exhaustive search becomes computationally prohibitive. 
+                I implemented a coarse-to-fine pyramid approach that dramatically reduces computation time. The algorithm works by:</p>
                 <ul>
-                    <li><strong>Single-scale alignment</strong>: For smaller images (< 400px), exhaustive search over a window of ±15 pixels</li>
-                    <li><strong>Pyramid alignment</strong>: For larger images, using an image pyramid to efficiently handle large displacements</li>
+                    <li><strong>Building the pyramid</strong>: Recursively rescale images by half until the smallest dimension reaches ~60 pixels, 
+                    typically creating 4-5 pyramid levels for large TIF files</li>
+                    <li><strong>Coarse-to-fine processing</strong>: Start alignment at the coarsest (smallest) level where exhaustive search is fast</li>
+                    <li><strong>Displacement propagation</strong>: For each finer level, multiply the previous displacement by 2 (accounting for the 2x scale increase) 
+                    and refine with a smaller ±8 pixel search window</li>
+                    <li><strong>Efficiency gain</strong>: This reduces computation from O(n²) for large displacements to O(log n), 
+                    enabling processing of 3000+ pixel images in ~40 seconds instead of several minutes</li>
                 </ul>
+                <p>The pyramid strategy maintains alignment accuracy while making large-scale processing feasible.</p>
             </div>
 
             <div class="approach-section">
-                <h3>3. Similarity Metric</h3>
-                <p>I used Normalized Cross-Correlation (NCC) as the similarity metric. NCC is more robust than simple L2 distance, 
-                especially when images have different brightness values (as is the case with different color channels).</p>
-            </div>
-
-            <div class="approach-section">
-                <h3>4. Pyramid Optimization</h3>
-                <p>For large images, I implemented a coarse-to-fine pyramid approach:</p>
+                <h3>4. Similarity Metric: Normalized Cross-Correlation</h3>
+                <p>I chose Normalized Cross-Correlation (NCC) as my primary similarity metric after comparing it with L2 distance. 
+                NCC measures the similarity between image patches by computing the dot product of normalized intensity vectors, 
+                producing scores between -1 (anti-correlated) and +1 (perfectly correlated). The normalization process involves:</p>
                 <ul>
-                    <li>Rescale images by half until the smallest dimension is ~60 pixels</li>
-                    <li>Start alignment from the coarsest level</li>
-                    <li>For each finer level, multiply the displacement by 2 and refine with a smaller search window</li>
-                    <li>This reduces computation from O(n²) to O(log n) for large displacements</li>
+                    <li><strong>Mean subtraction</strong>: Remove the average intensity from each image patch to focus on structural patterns</li>
+                    <li><strong>Standard deviation normalization</strong>: Divide by the standard deviation to make the metric robust to brightness differences</li>
+                    <li><strong>Dot product computation</strong>: Calculate the mean of the element-wise product of normalized patches</li>
                 </ul>
+                <p>NCC proved significantly more robust than L2 distance, especially for images like the Emir where different color channels 
+                have vastly different brightness levels due to varying exposure times with different color filters. The normalization makes 
+                NCC insensitive to linear brightness variations while preserving structural alignment information.</p>
+            </div>
+
+            <div class="approach-section">
+                <h3>5. Border Cropping Strategy</h3>
+                <p>I implemented a two-stage cropping strategy to handle digitization artifacts:</p>
+                <ul>
+                    <li><strong>Initial crop (5%)</strong>: Remove outer borders from original channels to eliminate scanning artifacts and frame edges</li>
+                    <li><strong>Alignment crop (15%)</strong>: During similarity computation, crop additional borders to avoid edge effects from the rolling operations used for shifting images</li>
+                    <li><strong>Final application</strong>: Apply the computed displacement to the original uncropped channels to preserve maximum image content in the final result</li>
+                </ul>
+                <p>This approach ensures that alignment decisions are based on clean interior image content while preserving as much of the original image as possible in the final colorized result.</p>
             </div>
         </section>
 
@@ -397,8 +426,8 @@
                     <tr>
                         <td class="image-name">emir.tif</td>
                         <td class="displacement green">(24, 49)</td>
-                        <td class="displacement red">(48, 44)</td>
-                        <td>Pyramid</td>
+                        <td class="displacement red">(40, 107)</td>
+                        <td>Gradient-based Pyramid</td>
                     </tr>
                     <tr>
                         <td class="image-name">harvesters.tif</td>
@@ -514,11 +543,11 @@
                 <div class="image-container">
                     <img src="media/emir_gradient.jpg" alt="Emir colorized">
                     <div class="image-label">Emir of Bukhara</div>
-                    <div class="image-description">Pyramid alignment (5 levels)</div>
+                    <div class="image-description">Gradient-based pyramid alignment</div>
                     <div class="displacement-info">
                         <span class="green">Green: (24, 49)</span><br>
-                        <span class="red">Red: (48, 44)</span><br>
-                        Processing time: 41.71s
+                        <span class="red">Red: (40, 107)</span><br>
+                        Processing time: 59.59s
                     </div>
                 </div>
 
@@ -660,7 +689,7 @@
                     <div class="image-container">
                         <img src="media/emir_gradient.jpg" alt="Emir with gradient-based alignment">
                         <div class="image-label">Gradient-Based Alignment</div>
-                        <div class="image-description">NCC on gradient magnitude</div>
+                        <div class="image-description">NCC on gradient magnitude (used in main gallery)</div>
                         <div class="displacement-info">
                             <span class="green">Green: (24, 49)</span><br>
                             <span class="red">Red: (40, 107)</span><br>
